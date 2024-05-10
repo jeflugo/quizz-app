@@ -8,6 +8,11 @@ function StateContext({ children }) {
 	const [currentQuestion, setCurrentQuestion] = useState(1)
 	const [triviaDone, setTriviaDone] = useState(false)
 	const [score, setScore] = useState(0)
+	const [limit] = useState(10)
+	const [answeredQuestions, setAnsweredQuestions] = useState([])
+
+	const minutes = 1
+	const [customTime] = useState(Date.now() + minutes * 60 * 1000)
 
 	const countdownRef = useRef()
 	const TRIVIA_API_URL = 'https://the-trivia-api.com/v2/questions'
@@ -24,8 +29,18 @@ function StateContext({ children }) {
 		}
 	}
 
+	const reset = () => {
+		setStart(false)
+		setTriviaDone(false)
+		setCurrentQuestion(1)
+		countdownRef.current.stop()
+		fetch(`${TRIVIA_API_URL}?difficulties=easy,medium&limit=${limit}`)
+			.then(res => res.json())
+			.then(data => setQuestions(data))
+	}
+
 	useEffect(() => {
-		fetch(`${TRIVIA_API_URL}?difficulties=easy,medium`)
+		fetch(`${TRIVIA_API_URL}?difficulties=easy,medium&limit=${limit}`)
 			.then(res => res.json())
 			.then(data => setQuestions(data))
 	}, [])
@@ -41,6 +56,12 @@ function StateContext({ children }) {
 				nextQuestion,
 				setTriviaDone,
 				triviaDone,
+				score,
+				reset,
+				customTime,
+				limit,
+				setAnsweredQuestions,
+				answeredQuestions,
 			}}
 		>
 			{children}

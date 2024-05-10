@@ -2,9 +2,16 @@ import { useMemo, useState } from 'react'
 import { useStateContext } from '../context/StateContext'
 import shuffle from '../utilities/shuffle'
 
-function Question({ question, correctAnswer, incorrectAnswers }) {
+function Question({ question, correctAnswer, incorrectAnswers, id }) {
 	const [selected, setSelected] = useState()
-	const { currentQuestion, nextQuestion, setTriviaDone } = useStateContext()
+	const {
+		currentQuestion,
+		nextQuestion,
+		setTriviaDone,
+		countdownRef,
+		limit,
+		setAnsweredQuestions,
+	} = useStateContext()
 
 	const options = useMemo(
 		() =>
@@ -34,11 +41,23 @@ function Question({ question, correctAnswer, incorrectAnswers }) {
 					</button>
 				))}
 			</div>
-			{currentQuestion !== 10 ? (
+			{currentQuestion !== limit ? (
 				<button
 					onClick={() => {
 						setSelected(undefined)
 						nextQuestion(options[selected])
+
+						setAnsweredQuestions(prevAnsweredQuestions => {
+							return [
+								...prevAnsweredQuestions,
+								{
+									id,
+									question: question.text,
+									options,
+									answer: options[selected],
+								},
+							]
+						})
 					}}
 					className={`self-end rounded-md  px-2 py-1 text-lg text-gray-100  ${!isNaN(selected) ? 'bg-green-600 transition-all hover:scale-105' : 'cursor-not-allowed select-none bg-green-300'}`}
 				>
@@ -46,7 +65,10 @@ function Question({ question, correctAnswer, incorrectAnswers }) {
 				</button>
 			) : (
 				<button
-					onClick={() => setTriviaDone(true)}
+					onClick={() => {
+						countdownRef.current.pause()
+						setTriviaDone(true)
+					}}
 					className={`self-end rounded-md  px-2 py-1 text-lg text-gray-100  ${!isNaN(selected) ? 'bg-green-600 transition-all hover:scale-105' : 'cursor-not-allowed select-none bg-green-300'}`}
 				>
 					Submit answers
